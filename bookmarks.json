@@ -1,0 +1,319 @@
+openapi: 3.0.0
+info:
+  description: |
+    The new bookmarks API for report curation in ABlaze.
+  version: "1.0.0"
+  title: Bookmarks API
+  contact:
+    email: yshang@netflix.com
+# servers:
+#   # Added by API Auto Mocking Plugin
+#   - description: SwaggerHub API Auto Mocking
+#     url: https://virtserver.swaggerhub.com/yshang/Bookmarks/1.0.0
+#   - url: 'https://petstore.swagger.io/v2'
+tags:
+  - name: bookmarks
+    description: Operations for bookmarks
+paths:
+  '/bookmarks':
+    post:
+      tags:
+        - bookmarks
+      summary: Creates a new bookmark
+      operationId: addBookmark
+      responses:
+        '405':
+          description: Invalid input
+        '200':
+          description: Success
+      requestBody:
+        description: Note that for bookmarks defined on a report execution, the schedule_id is `null`, and vice versa. Some properties of the bookmark (like `test_id`, `report_key` etc, will be inferred from the execution or schedule).
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  description: Name of the bookmark
+                  type: string
+                execution_id:
+                  description: Execution ID of the analysis (note that while this is nullable, either this or the schedule ID must be defined for a bookmark)
+                  type: integer
+                  format: int64
+                  nullable: true
+                schedule_id:
+                  description: Schedule ID of the analysis (note that while this is nullable, either this or the execution ID must be defined for a bookmark)
+                  type: integer
+                  format: int64
+                  nullable: true
+                  example: 824
+                control_cell:
+                  description: Control cell of the analysis
+                  type: string
+                  example: "1"
+                analysis_filters:
+                  description: Analysis-time filters
+                  type: string
+                  example: [{"key": "tenure", "op": "eq", "value": "64"}]
+            examples:
+              with_execution_defined:
+                summary: With Execution Defined
+                description: A bookmark defined on a report execution, where the `schedule_id` is `null`
+                value:
+                  name: "New to Device Members"
+                  execution_id: 109281                
+                  schedule_id: null
+                  control_cell: "1"
+                  analysis_filters: [{"key": "tenure", "op": "eq", "value": "64"}]
+              with_schedule_defined:
+                summary: With Schedule Defined
+                description: A bookmark defined on a cadence execution (schedule), where the `execution_id` is `null`
+                value:
+                  name: "New to Device Members2"
+                  execution_id: null                
+                  schedule_id: 892
+                  control_cell: "1"
+                  analysis_filters: [{"key": "tenure", "op": "eq", "value": "64"}]
+    get:
+      tags:
+        - bookmarks
+      summary: Finds bookmarks using filters
+      description: Providing no filters will return all bookmarks
+      operationId: findBookmarks
+      parameters:
+        - name: tags
+          in: query
+          description: Tags to filter bookmarks by. Muliple tags can be provided with comma separated strings.
+          required: false
+          explode: true
+          schema:
+            type: array
+            items:
+              type: string
+        - name: testId
+          in: query
+          description: Test ID to filter bookmarks by
+          required: false
+          schema:
+            type: integer
+          example: 21568
+        - name: reportId
+          in: query
+          description: Report key to filter bookmarks by
+          required: false
+          schema:
+            type: string
+          example: report.member_summary
+      responses:
+        '200':
+          description: Success - returns a list of bookmarks
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Bookmark'
+        '400':
+          description: Invalid filters
+  '/bookmarks/{bookmarkId}':
+    get:
+      tags:
+        - bookmarks
+      summary: Find bookmark by ID
+      description: Returns a single bookmark
+      operationId: getBookmarkById
+      parameters:
+        - name: bookmarkId
+          in: path
+          description: ID of bookmark to return
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Success - returns a single bookmark
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Bookmark'
+        '400':
+          description: Invalid ID supplied
+        '404':
+          description: Bookmark not found
+    post:
+      tags:
+        - bookmarks
+      summary: Updates a bookmark
+      operationId: updateBookmark
+      parameters:
+        - name: bookmarkId
+          in: path
+          description: ID of bookmark that needs to be updated
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '405':
+          description: Invalid input
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  description: Updated name of the bookmark
+                  type: string
+                status:
+                  description: Updated tags of the bookmark
+                  type: string
+    delete:
+      tags:
+        - bookmarks
+      summary: Deletes a bookmark
+      operationId: deleteBookmark
+      parameters:
+        - name: bookmarkId
+          in: path
+          description: Bookmark id to delete
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Success
+        '400':
+          description: Invalid ID supplied
+        '404':
+          description: Bookmark not found
+components:
+  schemas:
+    Category:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+      xml:
+        name: Category
+    Tag:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+    AnalysisFilter:
+      type: object
+      properties:
+        key:
+          type: string
+        op:
+          type: string
+        value:
+          type: string
+    CellInformation:
+      type: object
+      properties:
+        number:
+          type: string
+        name:
+          type: string
+    Bookmark:
+      type: object
+      required:
+        - name
+        - test_id
+        - report_key
+        - execution_id
+        - schedule_id
+        - control_cell
+        - analysis_filters
+        - cells_information
+      properties:
+        id:
+          type: integer
+          format: int64
+        # category:
+        #   $ref: '#/components/schemas/Category'
+        name:
+          type: string
+          example: New to Device Members
+        test_id:
+          type: integer
+          format: int64
+          example: 222222
+        # tags:
+        #   type: array
+        #   xml:
+        #     name: tag
+        #     wrapped: true
+        #   items:
+        #     $ref: '#/components/schemas/Tag'
+        report_key:
+          type: string
+          example: 'report.member_summary'
+        execution_id:
+          type: integer
+          format: int64
+          example: 12316
+        schedule_id:
+          type: integer
+          format: int64
+          example: 811
+        control_cell:
+          type: string
+          example: "1"
+        analysis_filters:
+          type: array
+          items:
+            type: object
+            properties:
+              key:
+                type: string
+              op:
+                type: string
+              value:
+                type: string
+            # $ref: '#/components/schemas/AnalysisFilter'
+          example: [{"key": "tenure", "op": "eq", "value": "64"}]
+        cells_information:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+              number:
+                type: string
+          example: [{"name":"Default","number":"1"},{"name":"Other","number":"2"}]
+      xml:
+        name: Bookmark
+    ApiResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          format: int32
+        type:
+          type: string
+        message:
+          type: string
+  requestBodies:
+    Bookmark:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Bookmark'
+      description: Bookmark that needs to be created
+      required: true
+servers:
+  # Added by API Auto Mocking Plugin
+  - description: SwaggerHub API Auto Mocking
+    url: https://virtserver.swaggerhub.com/yshang/Bookmarks/1.0.0
