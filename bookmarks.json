@@ -6,11 +6,6 @@ info:
   title: Bookmarks API
   contact:
     email: yshang@netflix.com
-# servers:
-#   # Added by API Auto Mocking Plugin
-#   - description: SwaggerHub API Auto Mocking
-#     url: https://virtserver.swaggerhub.com/yshang/Bookmarks/1.0.0
-#   - url: 'https://petstore.swagger.io/v2'
 tags:
   - name: bookmarks
     description: Operations for bookmarks
@@ -20,7 +15,7 @@ paths:
       tags:
         - bookmarks
       summary: Creates a new bookmark
-      operationId: addBookmark
+      operationId: createBookmark
       responses:
         '405':
           description: Invalid input
@@ -74,39 +69,67 @@ paths:
                   schedule_id: 892
                   control_cell: "1"
                   analysis_filters: [{"key": "tenure", "op": "eq", "value": "64"}]
+  '/bookmarks/{testId}/{reportKey}':
     get:
       tags:
         - bookmarks
       summary: Finds bookmarks using filters
-      description: Providing no filters will return all bookmarks
       operationId: findBookmarks
       parameters:
-        - name: tags
+        - name: testId
+          in: path
+          description: Test ID to filter bookmarks by
+          required: true
+          schema:
+            type: integer
+          example: 21568
+        - name: reportKey
+          in: path
+          description: Report key to filter bookmarks by
+          required: true
+          schema:
+            type: string
+          example: report.member_summary
+        - name: execution_id
           in: query
-          description: Tags to filter bookmarks by. Muliple tags can be provided with comma separated strings.
+          description: Execution ID to filter bookmarks by
+          required: false
+          example: 109348
+          schema:
+            type: integer
+            format: int64
+        - name: schedule_id
+          in: query
+          description: Schedule ID to filter bookmarks by
+          required: false
+          example: 891
+          schema:
+            type: integer
+            format: int64
+        - name: categories
+          in: query
+          description: Categories to filter bookmarks by. Muliple categories can be provided with comma separated strings.
           required: false
           explode: true
+          example: IMPORTANT,DEFAULT
           schema:
             type: array
             items:
               type: string
-        - name: testId
+        - name: tags
           in: query
-          description: Test ID to filter bookmarks by
+          description: Tag ids to filter bookmarks by. Muliple tag ids can be provided with comma separated strings.
           required: false
+          explode: true
+          example: 1,4,10
           schema:
-            type: integer
-          example: 21568
-        - name: reportId
-          in: query
-          description: Report key to filter bookmarks by
-          required: false
-          schema:
-            type: string
-          example: report.member_summary
+            type: array
+            items:
+              type: integer
+              format: int64
       responses:
         '200':
-          description: Success - returns a list of bookmarks
+          description: Success - returns a list of bookmarks that satisfy the filter criterion
           content:
             application/json:
               schema:
@@ -155,6 +178,10 @@ paths:
             type: integer
             format: int64
       responses:
+        '200':
+          description: Successfully updated bookmark
+        '404':
+          description: Bookmark not found
         '405':
           description: Invalid input
       requestBody:
@@ -166,9 +193,17 @@ paths:
                 name:
                   description: Updated name of the bookmark
                   type: string
-                status:
-                  description: Updated tags of the bookmark
+                  example: "Test 3 Retest - EM 35d"
+                category:
+                  description: Updated category of the bookmark
                   type: string
+                  example: "DEFAULT"
+                tags:
+                  description: Updated tag ids of the bookmark
+                  type: array
+                  example: [1,2]
+                  items:
+                    type: integer
     delete:
       tags:
         - bookmarks
@@ -240,22 +275,16 @@ components:
         id:
           type: integer
           format: int64
-        # category:
-        #   $ref: '#/components/schemas/Category'
         name:
           type: string
           example: New to Device Members
+        category:
+          type: string
+          enum: ["IMPORTANT", "DEFAULT", "OTHER"]
         test_id:
           type: integer
           format: int64
           example: 222222
-        # tags:
-        #   type: array
-        #   xml:
-        #     name: tag
-        #     wrapped: true
-        #   items:
-        #     $ref: '#/components/schemas/Tag'
         report_key:
           type: string
           example: 'report.member_summary'
@@ -293,6 +322,10 @@ components:
               number:
                 type: string
           example: [{"name":"Default","number":"1"},{"name":"Other","number":"2"}]
+        tags:
+          type: array
+          items:
+            $ref: '#/components/schemas/Tag'
       xml:
         name: Bookmark
     ApiResponse:
