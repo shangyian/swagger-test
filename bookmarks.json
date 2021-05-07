@@ -117,7 +117,7 @@ paths:
             format: int64
         - name: categories
           in: query
-          description: Categories to filter bookmarks by. Muliple categories can be provided with comma separated strings.
+          description: Categories to filter bookmarks by. Multiple categories can be provided with comma separated strings.
           required: false
           explode: true
           example: IMPORTANT,DEFAULT
@@ -127,7 +127,7 @@ paths:
               type: string
         - name: tags
           in: query
-          description: Tag ids to filter bookmarks by. Muliple tag ids can be provided with comma separated strings.
+          description: Tag ids to filter bookmarks by. Multiple tag ids can be provided with comma separated strings.
           required: false
           explode: true
           example: 1,4,10
@@ -136,6 +136,10 @@ paths:
             items:
               type: integer
               format: int64
+        - name: offset
+          $ref: '#/components/parameters/offsetParam'
+        - name: limit
+          $ref: '#/components/parameters/limitParam'
       responses:
         '200':
           description: Success - returns a list of bookmarks that satisfy the filter criterion
@@ -324,6 +328,27 @@ components:
         updated_by:
           type: string
           example: "yshang"
+  parameters:
+    offsetParam:
+      in: query
+      name: offset
+      required: false
+      schema:
+        type: integer
+        minimum: 0
+        default: 0
+      description: The number of items to skip before starting to collect the result set.
+    limitParam:
+      in: query
+      name: limit
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 200
+        default: 100
+      description: The numbers of items to return.
+
 servers:
   # Added by API Auto Mocking Plugin
   - description: SwaggerHub API Auto Mocking
