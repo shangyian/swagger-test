@@ -6,11 +6,6 @@ info:
   title: Bookmarks API
   contact:
     email: yshang@netflix.com
-# servers:
-#   # Added by API Auto Mocking Plugin
-#   - description: SwaggerHub API Auto Mocking
-#     url: https://virtserver.swaggerhub.com/yshang/Bookmarks/1.0.0
-#   - url: 'https://petstore.swagger.io/v2'
 tags:
   - name: bookmarks
     description: Operations for bookmarks
@@ -84,7 +79,6 @@ paths:
                   schedule_id: 892
                   control_cell: "1"
                   analysis_filters: [{"key": "tenure", "op": "eq", "value": "64"}]
-  '/bookmarks/{test_id}/{report_key}':
     get:
       tags:
         - bookmarks
@@ -92,16 +86,16 @@ paths:
       operationId: findBookmarks
       parameters:
         - name: test_id
-          in: path
+          in: query
           description: Test ID to filter bookmarks by
-          required: true
+          required: false
           schema:
             type: integer
           example: 21568
         - name: report_key
-          in: path
+          in: query
           description: Report key to filter bookmarks by
-          required: true
+          required: false
           schema:
             type: string
           example: report.member_summary
