@@ -248,6 +248,8 @@ components:
           format: int64
         name:
           type: string
+        type:
+          type: string
     Bookmark:
       type: object
       required:
